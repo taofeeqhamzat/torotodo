@@ -301,10 +301,10 @@
         const $li = $(`
           <li class="flex items-start gap-3 py-4 border-b border-border transition-all duration-200 hover:bg-accent/5 hover:rounded-lg hover:mx-[-8px] hover:px-2 ${todo.completed ? 'opacity-75' : ''}" data-id="${todo.id}">
             <input type="checkbox" class="w-5 h-5 accent-accent cursor-pointer mt-1" ${todo.completed ? 'checked' : ''}>
-            <div class="flex-1">
+            <label class="flex-1">
               <span class="text-base leading-relaxed ${todo.completed ? 'text-muted line-through' : 'text-text'}">${todo.title}</span>
               ${formatDueDate(todo.dueAt)}
-            </div>
+            </label>
             <button class="w-6 h-6 md:w-6 md:h-6 w-7 h-7 rounded-full bg-transparent text-muted border border-transparent flex items-center justify-center text-base md:text-base text-lg opacity-60 md:opacity-60 opacity-50 transition-all duration-200 hover:bg-danger/10 hover:text-danger hover:border-danger hover:opacity-100 hover:scale-110 md:hover:scale-110 hover:scale-115" title="Delete task">×</button>
           </li>
         `);
@@ -312,10 +312,12 @@
         // Event handlers
         $li.find('input[type="checkbox"]').on('change', () => toggleTodo(todo.id));
         $li.find('button').on('click', () => deleteTodo(todo.id));
-        
         // Inline editing
-        $li.find('span').on('dblclick', function() {
-          const $span = $(this);
+        $li.find('label').on('click', (e) => e.preventDefault())
+        .on('dblclick', function() {
+          if ($(this).find('input').length > 0) return;
+
+          const $span = $(this).find('span:first');
           const $input = $(`<input class="flex-1 px-3 py-2 rounded-lg border border-accent bg-slate-900/90 text-text text-base" value="${todo.title}">`);
           
           $span.replaceWith($input);
@@ -330,10 +332,12 @@
             }
           };
           
+          const cancel = () => render();
+
           $input.on('keydown', function(e) {
             if (e.key === 'Enter') commit();
-            if (e.key === 'Escape') render();
-          }).on('blur', commit);
+            if (e.key === 'Escape') cancel();
+          }).on('blur', cancel);
         });
 
         return $li;
