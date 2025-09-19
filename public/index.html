@@ -72,11 +72,13 @@
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="completed" role="tab" aria-selected="false">Completed</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-action="clearCompleted" title="Remove all completed">Clear Completed</span>
         </div>
-        <div class="flex gap-2 flex-wrap items-center text-sm" role="radiogroup" aria-label="Sort by">
-          <span class="text-muted font-medium">Sort by:</span>
-          <span class="sort-pill active px-3 py-1.5 rounded-full bg-accent/15 border border-accent text-accent cursor-pointer font-medium" data-sort="createdAt" role="radio" aria-checked="true">Created</span>
-          <span class="sort-pill px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent" data-sort="dueAt" role="radio" aria-checked="false">Due Date</span>
-          <span class="sort-pill px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent" data-sort="completed" role="radio" aria-checked="false">Completed</span>
+        <div class="flex gap-2 flex-wrap items-center text-sm">
+          <label for="sort-by" class="text-muted font-medium">Sort by:</label>
+          <select id="sort-by" class="bg-slate-900/80 border border-border-light rounded-lg px-3 py-1.5 text-sm text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
+            <option value="createdAt">Created</option>
+            <option value="dueAt">Due Date</option>
+            <option value="completed">Completed</option>
+          </select>
         </div>
       </section>
 
@@ -307,19 +309,8 @@
           }
         });
 
-        // Update sort pills
-        $(".sort-pill").each(function() {
-          const $pill = $(this);
-          const isActive = $pill.data('sort') === state.sortBy;
-
-          $pill.removeClass('active').attr('aria-checked', isActive);
-
-          if (isActive) {
-            $pill.addClass('active px-3 py-1.5 rounded-full bg-accent/15 border border-accent text-accent cursor-pointer font-medium');
-          } else {
-            $pill.addClass('px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent');
-          }
-        });
+        // Update sort dropdown
+        $("#sort-by").val(state.sortBy);
       }
 
       // --- Import/Export --------------------------------------------------------
@@ -422,8 +413,8 @@
         }
       });
 
-      $(".sort-pill").on('click', function() {
-        const sortBy = $(this).data('sort');
+      $("#sort-by").on('change', function() {
+        const sortBy = $(this).val();
         state.sortBy = sortBy;
         localStorage.setItem("todos.sortBy", sortBy);
         render();
