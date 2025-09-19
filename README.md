@@ -13,7 +13,7 @@ A Simple todo app for the codelab. Open `index.html` in your browser. No build t
 Just double-click `public/index.html`.
 
 ## Get started with the codelab 
-***Open [codelab.md] (https://github.com/dftaiwo/torotodo/codelab.md)***
+***Open [codelab.md] (https://github.com/dftaiwo/torotodo/blob/main/codelab.md)***
 
 ## Designed Workshop Issues
 
