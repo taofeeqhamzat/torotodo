@@ -182,6 +182,8 @@ Jules will start and may run for as little as 3 minutes or up to 10 minutes.
 
 **Task:** Add CSV export functionality to the Todo app
 
+Create a New Task by clicking on the "+" sign 
+
 ### The Prompt
 
 Copy and paste this into Jules:

@@ -12,6 +12,9 @@ A Simple todo app for the codelab. Open `index.html` in your browser. No build t
 ## Run
 Just double-click `public/index.html`.
 
+## Get started with the codelab 
+***Open [codelab.md] (https://github.com/dftaiwo/torotodo/codelab.md)***
+
 ## Designed Workshop Issues
 
 ### feat: Light and dark modes
@@ -39,3 +42,5 @@ Ensure values are properly escaped.
 
 ### pwa: Make it installable (manifest + service worker)
 Convert the app to a Progressive Web App with offline capabilities
+
+
