@@ -72,9 +72,12 @@
 <body>
   <div class="max-w-2xl mx-auto my-16 px-5 md:my-16 my-5 md:px-5 px-4">
     <div class="bg-card border border-border rounded-2xl p-8 md:p-8 p-6 shadow-2xl backdrop-blur-sm animate-fade-in" role="application" aria-label="Todo app">
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold mb-3 bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
-        <div class="text-muted text-base leading-relaxed">Your personal task manager</div>
+      <header class="mb-8 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
+          <div class="text-muted text-base leading-relaxed mt-1">Your personal task manager</div>
+        </div>
+        <button id="theme-toggle" class="w-10 h-10 rounded-full flex items-center justify-center bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent text-xl"></button>
       </header>
 
       <section class="mb-6">
@@ -105,7 +108,6 @@
         </div>
         <div class="text-xs opacity-80">
           <span class="kbd px-2 py-1 border border-border-light rounded text-xs text-muted bg-slate-900/50">Enter</span> to add •
-          <button id="theme-toggle" class="ml-2 px-2 py-1 border border-border-light rounded text-xs text-muted bg-slate-900/50">Theme</button>
         </div>
       </footer>
 
