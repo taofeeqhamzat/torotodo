@@ -12,25 +12,48 @@
       theme: {
         extend: {
           colors: {
-            'bg': '#0f172a',
-            'card': '#111827',
-            'text': '#f1f5f9',
-            'muted': '#94a3b8',
-            'accent': '#3b82f6',
-            'accent-hover': '#2563eb',
-            'danger': '#ef4444',
-            'danger-hover': '#dc2626',
-            'border': '#1e293b',
-            'border-light': '#334155',
+            'bg': 'var(--color-bg)',
+            'card': 'var(--color-card)',
+            'text': 'var(--color-text)',
+            'muted': 'var(--color-muted)',
+            'accent': 'var(--color-accent)',
+            'accent-hover': 'var(--color-accent-hover)',
+            'danger': 'var(--color-danger)',
+            'danger-hover': 'var(--color-danger-hover)',
+            'border': 'var(--color-border)',
+            'border-light': 'var(--color-border-light)',
           }
         }
       }
     }
   </script>
   <style>
+    :root {
+      --color-bg: #0f172a;
+      --color-card: #111827;
+      --color-text: #f1f5f9;
+      --color-muted: #94a3b8;
+      --color-accent: #3b82f6;
+      --color-accent-hover: #2563eb;
+      --color-danger: #ef4444;
+      --color-danger-hover: #dc2626;
+      --color-border: #1e293b;
+      --color-border-light: #334155;
+    }
+
+    .light {
+      --color-bg: #f8fafc;
+      --color-card: #ffffff;
+      --color-text: #0f172a;
+      --color-muted: #64748b;
+      /* accent and danger colors can remain the same or be adjusted */
+      --color-border: #e2e8f0;
+      --color-border-light: #f1f5f9;
+    }
+
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #0b1223 0%, #0f172a 50%, #0a0f1c 100%);
+      background-color: var(--color-bg);
       min-height: 100vh;
     }
     
@@ -49,9 +72,12 @@
 <body>
   <div class="max-w-2xl mx-auto my-16 px-5 md:my-16 my-5 md:px-5 px-4">
     <div class="bg-card border border-border rounded-2xl p-8 md:p-8 p-6 shadow-2xl backdrop-blur-sm animate-fade-in" role="application" aria-label="Todo app">
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold mb-3 bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
-        <div class="text-muted text-base leading-relaxed">Your personal task manager</div>
+      <header class="mb-8 flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-text to-muted bg-clip-text text-transparent">Toro</h1>
+          <div class="text-muted text-base leading-relaxed mt-1">Your personal task manager</div>
+        </div>
+        <button id="theme-toggle" class="w-10 h-10 rounded-full flex items-center justify-center bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent text-xl"></button>
       </header>
 
       <section class="mb-6">
@@ -360,6 +386,31 @@
           $(this).val(''); // Reset file input
         }
       });
+
+      // --- Theme Switcher -----------------------------------------------------
+      const THEME_KEY = "theme";
+      const $html = $("html");
+      const $toggle = $("#theme-toggle");
+
+      function applyTheme(theme) {
+        if (theme === "light") {
+          $html.addClass("light");
+          $toggle.text("🌙");
+        } else {
+          $html.removeClass("light");
+          $toggle.text("☀️");
+        }
+        localStorage.setItem(THEME_KEY, theme);
+      }
+
+      $toggle.on("click", () => {
+        const currentTheme = $html.hasClass("light") ? "light" : "dark";
+        applyTheme(currentTheme === "light" ? "dark" : "light");
+      });
+
+      // Load initial theme
+      const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
+      applyTheme(savedTheme);
 
       // --- Bootstrap ------------------------------------------------------------
       // Only seed initial data for first-time users (when localStorage has never been initialized)
