@@ -10,7 +10,7 @@ A Simple todo app for the codelab. Open `index.html` in your browser. No build t
 - Persists in `localStorage`
 
 ## Run
-Just double-click `index.html`.
+Just double-click `public/index.html`.
 
 ## Designed Workshop Issues
 
