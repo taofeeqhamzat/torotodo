@@ -91,11 +91,17 @@
         </div>
       </section>
 
+      <section class="mb-4">
+        <input id="search" type="text" placeholder="Search..." aria-label="Search todos"
+               class="w-full px-4 py-3.5 rounded-xl border border-border-light bg-slate-900/80 text-text text-base transition-all duration-200 focus:outline-none focus:border-accent focus:ring-3 focus:ring-accent/10 placeholder:text-muted" />
+      </section>
+
       <section class="mb-5 flex md:flex-row flex-col md:items-center md:justify-between gap-4">
         <div class="flex gap-2 flex-wrap" role="tablist" aria-label="Filters">
           <span class="pill active px-4 py-2 rounded-full border border-accent text-accent bg-accent/15 cursor-pointer text-sm font-medium transition-all duration-200" data-filter="all" role="tab" aria-selected="true">All</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="active" role="tab" aria-selected="false">Active</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="completed" role="tab" aria-selected="false">Completed</span>
+          <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="overdue" role="tab" aria-selected="false">Overdue</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-action="clearCompleted" title="Remove all completed">Clear Completed</span>
         </div>
         <div class="flex gap-2 flex-wrap items-center text-sm">
@@ -139,10 +145,20 @@
       const state = {
         filter: "all",
         sortBy: localStorage.getItem("todos.sortBy") || "createdAt",
-        todos: load()
+        todos: load(),
+        searchQuery: ""
       };
 
       // --- Utility Functions ---------------------------------------------------
+      function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+          const context = this;
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+      }
+
       function uid() {
         return Math.random().toString(36).slice(2) + Date.now().toString(36);
       }
@@ -215,18 +231,31 @@
 
       // --- Rendering -----------------------------------------------------------
       function getFiltered() {
-        let todos = [];
+        let todos = [...state.todos];
+
+        // Filter by status
         switch (state.filter) {
           case "active":
-            todos = state.todos.filter(t => !t.completed);
+            todos = todos.filter(t => !t.completed);
             break;
           case "completed":
-            todos = state.todos.filter(t => t.completed);
+            todos = todos.filter(t => t.completed);
             break;
-          default:
-            todos = [...state.todos];
+          case "overdue":
+            const today = new Date().setHours(0, 0, 0, 0);
+            todos = todos.filter(t => {
+              if (!t.dueAt || t.completed) return false;
+              return new Date(t.dueAt).setHours(0, 0, 0, 0) < today;
+            });
             break;
         }
+
+        // Filter by search query
+        if (state.searchQuery) {
+          const query = state.searchQuery.toLowerCase();
+          todos = todos.filter(t => t.title.toLowerCase().includes(query));
+        }
+
         return sortTodos(todos);
       }
 
@@ -408,6 +437,11 @@
       }
 
       // --- Event Handlers ------------------------------------------------------
+      $("#search").on('input', debounce(function() {
+        state.searchQuery = $(this).val();
+        render();
+      }, 250));
+
       $("#addBtn").on('click', function() {
         const title = $("#newTodo").val();
         const dueAt = $("#newTodoDueDate").val();
