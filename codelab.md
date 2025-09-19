@@ -138,6 +138,9 @@ Visit: **[https://github.com/dftaiwo/torotodo](https://github.com/dftaiwo/toroto
 
 >  **Note:** The initial setup may take 1-2 minutes as Jules provisions your workspace
 
+Jules will start and may run for as little as 3 minutes or up to 10 minutes.
+
+
 ###  When Jules is Done
 
 1. **Pull the Changes in VS Code**
