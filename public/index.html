@@ -58,17 +58,25 @@
         <div class="flex gap-3 items-center md:flex-row flex-col">
           <input id="newTodo" type="text" placeholder="What needs to be done?" aria-label="New todo" 
                  class="flex-1 px-4 py-3.5 rounded-xl border border-border-light bg-slate-900/80 text-text text-base transition-all duration-200 focus:outline-none focus:border-accent focus:ring-3 focus:ring-accent/10 placeholder:text-muted w-full" />
+          <input id="newTodoDueDate" type="date" aria-label="Due date"
+                 class="px-4 py-3.5 rounded-xl border border-border-light bg-slate-900/80 text-muted text-base transition-all duration-200 focus:outline-none focus:border-accent focus:ring-3 focus:ring-accent/10 w-full md:w-auto" />
           <button id="addBtn" aria-label="Add todo" 
                   class="px-5 py-3.5 rounded-xl bg-accent text-white font-semibold text-sm cursor-pointer transition-all duration-200 hover:bg-accent-hover hover:-translate-y-0.5 whitespace-nowrap md:w-auto w-full">Add Task</button>
         </div>
       </section>
 
-      <section class="mb-5">
+      <section class="mb-5 flex md:flex-row flex-col md:items-center md:justify-between gap-4">
         <div class="flex gap-2 flex-wrap" role="tablist" aria-label="Filters">
           <span class="pill active px-4 py-2 rounded-full border border-accent text-accent bg-accent/15 cursor-pointer text-sm font-medium transition-all duration-200" data-filter="all" role="tab" aria-selected="true">All</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="active" role="tab" aria-selected="false">Active</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-filter="completed" role="tab" aria-selected="false">Completed</span>
           <span class="pill px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent" data-action="clearCompleted" title="Remove all completed">Clear Completed</span>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center text-sm" role="radiogroup" aria-label="Sort by">
+          <span class="text-muted font-medium">Sort by:</span>
+          <span class="sort-pill active px-3 py-1.5 rounded-full bg-accent/15 border border-accent text-accent cursor-pointer font-medium" data-sort="createdAt" role="radio" aria-checked="true">Created</span>
+          <span class="sort-pill px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent" data-sort="dueAt" role="radio" aria-checked="false">Due Date</span>
+          <span class="sort-pill px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent" data-sort="completed" role="radio" aria-checked="false">Completed</span>
         </div>
       </section>
 
@@ -102,6 +110,7 @@
       const LS_KEY = "todos.v1";
       const state = {
         filter: "all",
+        sortBy: localStorage.getItem("todos.sortBy") || "createdAt",
         todos: load()
       };
 
@@ -131,7 +140,7 @@
       }
 
       // --- CRUD Operations -----------------------------------------------------
-      function addTodo(title) {
+      function addTodo(title, dueAt) {
         title = (title || "").trim();
         if (!title) return;
         
@@ -139,7 +148,8 @@
           id: uid(), 
           title, 
           completed: false, 
-          createdAt: Date.now() 
+          createdAt: Date.now(),
+          dueAt: dueAt ? new Date(dueAt).toISOString() : null
         });
         save();
         render();
@@ -177,20 +187,67 @@
 
       // --- Rendering -----------------------------------------------------------
       function getFiltered() {
+        let todos = [];
         switch (state.filter) {
-          case "active": return state.todos.filter(t => !t.completed);
-          case "completed": return state.todos.filter(t => t.completed);
-          default: return state.todos;
+          case "active":
+            todos = state.todos.filter(t => !t.completed);
+            break;
+          case "completed":
+            todos = state.todos.filter(t => t.completed);
+            break;
+          default:
+            todos = [...state.todos];
+            break;
         }
+        return sortTodos(todos);
+      }
+
+      function sortTodos(todos) {
+        switch (state.sortBy) {
+          case 'dueAt':
+            return todos.sort((a, b) => {
+              if (a.dueAt && b.dueAt) return new Date(a.dueAt) - new Date(b.dueAt);
+              return a.dueAt ? -1 : 1;
+            });
+          case 'completed':
+            return todos.sort((a, b) => a.completed - b.completed);
+          case 'createdAt':
+          default:
+            return todos.sort((a, b) => b.createdAt - a.createdAt);
+        }
+      }
+
+      function formatDueDate(dueAt) {
+        if (!dueAt) return '';
+
+        const date = new Date(dueAt);
+        const now = new Date();
+        const isToday = date.toDateString() === now.toDateString();
+        const isTomorrow = new Date(now.setDate(now.getDate() + 1)).toDateString() === date.toDateString();
+
+        let formattedDate;
+        if (isToday) {
+          formattedDate = 'Today';
+        } else if (isTomorrow) {
+          formattedDate = 'Tomorrow';
+        } else {
+          formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        const isPast = new Date(dueAt).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+        const colorClass = isPast ? 'text-danger' : 'text-muted';
+
+        return `<div class="text-xs ${colorClass} mt-1">${formattedDate}</div>`;
       }
 
       function createTodoItem(todo) {
         const $li = $(`
-          <li class="flex items-center gap-3 py-4 border-b border-border transition-all duration-200 hover:bg-accent/5 hover:rounded-lg hover:mx-[-8px] hover:px-2 ${todo.completed ? 'opacity-75' : ''}" data-id="${todo.id}">
-            <label class="flex-1 flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" class="w-5 h-5 accent-accent cursor-pointer" ${todo.completed ? 'checked' : ''}>
-              <span class="flex-1 text-base leading-relaxed ${todo.completed ? 'text-muted line-through' : 'text-text'}">${todo.title}</span>
-            </label>
+          <li class="flex items-start gap-3 py-4 border-b border-border transition-all duration-200 hover:bg-accent/5 hover:rounded-lg hover:mx-[-8px] hover:px-2 ${todo.completed ? 'opacity-75' : ''}" data-id="${todo.id}">
+            <input type="checkbox" class="w-5 h-5 accent-accent cursor-pointer mt-1" ${todo.completed ? 'checked' : ''}>
+            <div class="flex-1">
+              <span class="text-base leading-relaxed ${todo.completed ? 'text-muted line-through' : 'text-text'}">${todo.title}</span>
+              ${formatDueDate(todo.dueAt)}
+            </div>
             <button class="w-6 h-6 md:w-6 md:h-6 w-7 h-7 rounded-full bg-transparent text-muted border border-transparent flex items-center justify-center text-base md:text-base text-lg opacity-60 md:opacity-60 opacity-50 transition-all duration-200 hover:bg-danger/10 hover:text-danger hover:border-danger hover:opacity-100 hover:scale-110 md:hover:scale-110 hover:scale-115" title="Delete task">×</button>
           </li>
         `);
@@ -247,6 +304,20 @@
             $pill.addClass('active px-4 py-2 rounded-full border border-accent text-accent bg-accent/15 cursor-pointer text-sm font-medium transition-all duration-200');
           } else {
             $pill.addClass('px-4 py-2 rounded-full border border-border-light cursor-pointer text-muted text-sm font-medium transition-all duration-200 hover:bg-accent/10 hover:border-accent hover:text-accent');
+          }
+        });
+
+        // Update sort pills
+        $(".sort-pill").each(function() {
+          const $pill = $(this);
+          const isActive = $pill.data('sort') === state.sortBy;
+
+          $pill.removeClass('active').attr('aria-checked', isActive);
+
+          if (isActive) {
+            $pill.addClass('active px-3 py-1.5 rounded-full bg-accent/15 border border-accent text-accent cursor-pointer font-medium');
+          } else {
+            $pill.addClass('px-3 py-1.5 rounded-full border border-transparent text-muted cursor-pointer hover:bg-accent/10 hover:text-accent');
           }
         });
       }
@@ -306,7 +377,8 @@
               id: t.id || uid(),
               title: String(t.title || "").trim(),
               completed: !!t.completed,
-              createdAt: Number(t.createdAt || Date.now())
+              createdAt: Number(t.createdAt || Date.now()),
+              dueAt: t.dueAt ? new Date(t.dueAt).toISOString() : null
             })).filter(t => t.title);
             
             save();
@@ -321,15 +393,19 @@
       // --- Event Handlers ------------------------------------------------------
       $("#addBtn").on('click', function() {
         const title = $("#newTodo").val();
-        addTodo(title);
+        const dueAt = $("#newTodoDueDate").val();
+        addTodo(title, dueAt);
         $("#newTodo").val('').focus();
+        $("#newTodoDueDate").val('');
       });
 
       $("#newTodo").on('keydown', function(e) {
         if (e.key === 'Enter') {
           const title = $(this).val();
-          addTodo(title);
+          const dueAt = $("#newTodoDueDate").val();
+          addTodo(title, dueAt);
           $(this).val('');
+          $("#newTodoDueDate").val('');
         }
       });
 
@@ -344,6 +420,13 @@
         } else if (action === 'clearCompleted') {
           clearCompleted();
         }
+      });
+
+      $(".sort-pill").on('click', function() {
+        const sortBy = $(this).data('sort');
+        state.sortBy = sortBy;
+        localStorage.setItem("todos.sortBy", sortBy);
+        render();
       });
 
       $("#exportBtn").on('click', exportJSON);
